@@ -3669,10 +3669,7 @@ Synopsis:
       Host "localhost"
       Socket "/var/run/mysql/mysqld.sock"
       WsrepStats true
-<<<<<<< HEAD
-=======
       VariablesStats true
->>>>>>> 96d836d021f8fcfeb10a0c3155124feb7c4041a5
    </Database>
   </Plugin>
 
@@ -3749,17 +3746,13 @@ or SQL threads are not running. Defaults to B<false>.
  Enable the collection of wsrep plugin statistics, used in Master-Master
  replication setups like in MySQL Galera/Percona XtraDB Cluster.
  User needs only privileges to execute 'SHOW GLOBAL STATUS'
-<<<<<<< HEAD
  
-=======
-
 =item B<VariablesStats> I<true|false>
  
  Enable the collection of several mysql environment variables, 
  these variables become handy while monitoring your mysql server,
  No privileges needed to 'SHOW VARIABLES' 
 
->>>>>>> 96d836d021f8fcfeb10a0c3155124feb7c4041a5
 =item B<ConnectTimeout> I<Seconds>
 
 Sets the connect timeout for the MySQL client.
