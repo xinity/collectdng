@@ -814,7 +814,7 @@ static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 		key = row[0];
 		val = atoll (row[1]);
 
-		for (int i = 0; metrics[i].key != NULL && strcmp(metrics[i].key, key) != 0; i++)
+		for (i = 0; metrics[i].key != NULL && strcmp(metrics[i].key, key) != 0; i++)
 			;
 
 		if (metrics[i].key == NULL)
