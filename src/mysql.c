@@ -727,6 +727,10 @@ static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 		{ "wsrep_local_recv_queue_avg",      "queue_length", DS_TYPE_GAUGE },
 		{ "wsrep_local_send_queue",          "queue_length", DS_TYPE_GAUGE },
 		{ "wsrep_local_send_queue_avg",      "queue_length", DS_TYPE_GAUGE },
+		{ "wsrep_local_send_queue",          "queue_length", DS_TYPE_GAUGE },
+
+/*		{ "wsrep_local_recv_queue_avg",      "queue_length", DS_TYPE_GAUGE }, 
+		{ "wsrep_local_send_queue_avg",      "queue_length", DS_TYPE_GAUGE }, */
 
 		{ NULL,                              NULL,           0}
 
