@@ -703,18 +703,18 @@ static int mysql_read_variables (mysql_database_t *db, MYSQL *con)
 		int ds_type;
 	} metrics[] = {
     	{ "thread_cache_size",               "gauge",        DS_TYPE_GAUGE },
-	    { "innodb_log_buffer_size",          "gauge",        DS_TYPE_GAUGE },
+        { "innodb_log_buffer_size",          "gauge",        DS_TYPE_GAUGE },
     	{ "innodb_max_purge_lag_delay",      "gauge",        DS_TYPE_GAUGE },
     	{ "max_connections",                 "gauge",        DS_TYPE_GAUGE },
     	{ "innodb_additional_mem_pool_size", "gauge",        DS_TYPE_GAUGE },
     	{ "key_buffer_size",                 "gauge",        DS_TYPE_GAUGE },
-    	{ "key_cache_block_size",			 "gauge",		 DS_TYPE_GAUGE },
-		{ "query_cache_size",                "gauge",        DS_TYPE_GAUGE },
+    	{ "key_cache_block_size",            "gauge",        DS_TYPE_GAUGE },
+	{ "query_cache_size",                "gauge",        DS_TYPE_GAUGE },
     	{ "table_open_cache",                "gauge",        DS_TYPE_GAUGE },
     	{ "open_files_limit",                "gauge",        DS_TYPE_GAUGE },
-	    { "innodb_log_files_in_group",	     "gauge",	     DS_TYPE_GAUGE },
-	    { "innodb_log_file_size",            "gauge",        DS_TYPE_GAUGE },
-	    { NULL,                              NULL,           0}
+	{ "innodb_log_files_in_group",	     "gauge",	     DS_TYPE_GAUGE },
+	{ "innodb_log_file_size",            "gauge",        DS_TYPE_GAUGE },
+	{ NULL,                              NULL,           0}
 	};
 	query = "SHOW VARIABLES";
 
@@ -781,7 +781,10 @@ static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 		{ "wsrep_local_recv_queue_avg",      "queue_length", DS_TYPE_GAUGE },
 		{ "wsrep_local_send_queue",          "queue_length", DS_TYPE_GAUGE },
 		{ "wsrep_local_send_queue_avg",      "queue_length", DS_TYPE_GAUGE },
+		{ "wsrep_local_send_queue",          "queue_length", DS_TYPE_GAUGE },
 
+/*		{ "wsrep_local_recv_queue_avg",      "queue_length", DS_TYPE_GAUGE }, 
+		{ "wsrep_local_send_queue_avg",      "queue_length", DS_TYPE_GAUGE }, */
 		{ NULL,                              NULL,           0}
 
 	};
@@ -811,16 +814,13 @@ static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 		key = row[0];
 		val = atoll (row[1]);
 
-		for (i = 0; metrics[i].key != NULL && strcmp(metrics[i].key, key) != 0; i++)
+		for (int i = 0; metrics[i].key != NULL && strcmp(metrics[i].key, key) != 0; i++)
 			;
 
 		if (metrics[i].key == NULL)
 			continue;
 
 		switch (metrics[i].ds_type) {
-			case DS_TYPE_COUNTER:
-				counter_submit(metrics[i].type, key, (counter_t)val, db);
-				break;
 			case DS_TYPE_GAUGE:
 				gauge_submit(metrics[i].type, key, (gauge_t)val, db);
 				break;
@@ -833,8 +833,6 @@ static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 	mysql_free_result(res);
 	return (0);
 } /* mysql_read_wsrep_stats */
-
-
 
 static int mysql_read (user_data_t *ud)
 {
