@@ -699,32 +699,37 @@ static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 		int ds_type;
 	} metrics[] = {
 
-		{ "apply_oooe",                "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "apply_oool",                "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "causal_reads",              "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "commit_oooe",               "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "commit_oool",               "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "flow_control_recv",         "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "flow_control_sent",         "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "local_bf_aborts",           "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "local_cert_failures",       "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "local_commits",             "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "local_replays",             "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "received",                  "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "received_bytes",            "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "replicated",                "mysql_wsrep",   DS_TYPE_DERIVE },
-		{ "replicated_bytes",          "mysql_wsrep",   DS_TYPE_DERIVE },
+		{ "wsrep_apply_oooe",                "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_apply_oool",                "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_causal_reads",              "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_commit_oooe",               "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_commit_oool",               "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_flow_control_recv",         "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_flow_control_sent",         "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_flow_control_paused",       "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_local_bf_aborts",           "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_local_cert_failures",       "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_local_commits",             "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_local_replays",             "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_received",                  "operations",   DS_TYPE_DERIVE },
+		{ "wsrep_replicated",                "operations",   DS_TYPE_DERIVE },
 
-		{ "apply_window",              "mysql_wsrep",   DS_TYPE_GAUGE },
-		{ "cluster_size",              "mysql_wsrep",   DS_TYPE_GAUGE },
-		{ "cert_deps_distance",        "mysql_wsrep",   DS_TYPE_GAUGE },
-		{ "commit_window",             "mysql_wsrep",   DS_TYPE_GAUGE },
-		{ "local_recv_queue",          "mysql_wsrep",   DS_TYPE_GAUGE },
-		{ "local_recv_queue_avg",      "mysql_wsrep",   DS_TYPE_GAUGE },
-		{ "local_send_queue",          "mysql_wsrep",   DS_TYPE_GAUGE },
-		{ "local_send_queue_avg",      "mysql_wsrep",   DS_TYPE_GAUGE },
+		{ "wsrep_received_bytes",            "total_bytes",  DS_TYPE_DERIVE },
+		{ "wsrep_replicated_bytes",          "total_bytes",  DS_TYPE_DERIVE },
+
+		{ "wsrep_apply_window",              "window_size",  DS_TYPE_GAUGE },
+		{ "wsrep_commit_window",             "window_size",  DS_TYPE_GAUGE },
+
+		{ "wsrep_cluster_size",              "gauge",        DS_TYPE_GAUGE },
+		{ "wsrep_cert_deps_distance",        "gauge",        DS_TYPE_GAUGE },
+
+		{ "wsrep_local_recv_queue",          "queue_length", DS_TYPE_GAUGE },
+		{ "wsrep_local_recv_queue_avg",      "queue_length", DS_TYPE_GAUGE },
+		{ "wsrep_local_send_queue",          "queue_length", DS_TYPE_GAUGE },
+		{ "wsrep_local_send_queue_avg",      "queue_length", DS_TYPE_GAUGE },
 
 		{ NULL,                              NULL,           0}
+
 	};
 
 	query = "SHOW GLOBAL STATUS LIKE 'wsrep_%'";
