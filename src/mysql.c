@@ -54,6 +54,11 @@ struct mysql_database_s /* {{{ */
 	_Bool slave_stats;
 	_Bool innodb_stats;
 	_Bool wsrep_stats;
+<<<<<<< HEAD
+=======
+	_Bool variables_stats;
+
+>>>>>>> 96d836d021f8fcfeb10a0c3155124feb7c4041a5
 
 	_Bool slave_notif;
 	_Bool slave_io_running;
@@ -181,6 +186,12 @@ static int mysql_config_database (oconfig_item_t *ci) /* {{{ */
 			status = cf_util_get_boolean (child, &db->innodb_stats);
 		else if (strcasecmp ("WsrepStats", child->key) == 0)
 			status = cf_util_get_boolean (child, &db->wsrep_stats);
+<<<<<<< HEAD
+=======
+		else if (strcasecmp ("VariablesStats", child->key) == 0)
+			status = cf_util_get_boolean (child, &db->variables_stats);
+			
+>>>>>>> 96d836d021f8fcfeb10a0c3155124feb7c4041a5
 		else
 		{
 			WARNING ("mysql plugin: Option `%s' not allowed here.", child->key);
@@ -687,6 +698,58 @@ static int mysql_read_innodb_stats (mysql_database_t *db, MYSQL *con)
 	return (0);
 }
 
+<<<<<<< HEAD
+=======
+static int mysql_read_variables (mysql_database_t *db, MYSQL *con)
+{
+	MYSQL_RES *res;
+	MYSQL_ROW  row;
+	const char *query;
+    struct {
+		const char *key;
+		const char *type;
+		int ds_type;
+	} metrics[] = {
+    	{ "thread_cache_size",               "gauge",        DS_TYPE_GAUGE },
+	    { "innodb_log_buffer_size",          "gauge",        DS_TYPE_GAUGE },
+    	{ "innodb_max_purge_lag_delay",      "gauge",        DS_TYPE_GAUGE },
+    	{ "max_connections",                 "gauge",        DS_TYPE_GAUGE },
+    	{ "innodb_additional_mem_pool_size", "gauge",        DS_TYPE_GAUGE },
+    	{ "key_buffer_size",                 "gauge",        DS_TYPE_GAUGE },
+    	{ "key_cache_block_size",			 "gauge",		 DS_TYPE_GAUGE },
+		{ "query_cache_size",                "gauge",        DS_TYPE_GAUGE },
+    	{ "table_open_cache",                "gauge",        DS_TYPE_GAUGE },
+    	{ "open_files_limit",                "gauge",        DS_TYPE_GAUGE },
+	    { "innodb_log_files_in_group",	     "gauge",	     DS_TYPE_GAUGE },
+	    { "innodb_log_file_size",            "gauge",        DS_TYPE_GAUGE },
+	    { NULL,                              NULL,           0}
+	};
+	query = "SHOW VARIABLES";
+
+	res = exec_query (con, query);
+	if (res == NULL)
+		return (-1);
+
+	while ((row = mysql_fetch_row (res)))
+	{
+		int i;
+		char *key;
+		unsigned long long val;
+
+		key = row[0];
+		val = atoll (row[1]);
+
+		for (i = 0; metrics[i].key != NULL && strcmp(metrics[i].key, key) != 0; i++)
+			;
+			if (metrics[i].key == NULL)
+			continue;
+		gauge_submit(metrics[i].type, key, (gauge_t)val, db);
+		}
+		mysql_free_result(res);
+		return (0);
+} /* mysql_read_variables */
+
+>>>>>>> 96d836d021f8fcfeb10a0c3155124feb7c4041a5
 static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 {
 	MYSQL_RES *res;
@@ -727,10 +790,13 @@ static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 		{ "wsrep_local_recv_queue_avg",      "queue_length", DS_TYPE_GAUGE },
 		{ "wsrep_local_send_queue",          "queue_length", DS_TYPE_GAUGE },
 		{ "wsrep_local_send_queue_avg",      "queue_length", DS_TYPE_GAUGE },
+<<<<<<< HEAD
 		{ "wsrep_local_send_queue",          "queue_length", DS_TYPE_GAUGE },
 
 /*		{ "wsrep_local_recv_queue_avg",      "queue_length", DS_TYPE_GAUGE }, 
 		{ "wsrep_local_send_queue_avg",      "queue_length", DS_TYPE_GAUGE }, */
+=======
+>>>>>>> 96d836d021f8fcfeb10a0c3155124feb7c4041a5
 
 		{ NULL,                              NULL,           0}
 
@@ -799,6 +865,7 @@ static int mysql_read (user_data_t *ud)
 	derive_t qcache_not_cached    = 0;
 	derive_t qcache_lowmem_prunes = 0;
 	gauge_t qcache_queries_in_cache = NAN;
+    gauge_t qcache_free_memory = NAN;
 
 	gauge_t threads_running   = NAN;
 	gauge_t threads_connected = NAN;
@@ -874,6 +941,8 @@ static int mysql_read (user_data_t *ud)
 				qcache_lowmem_prunes = (derive_t) val;
 			else if (strcmp (key, "Qcache_queries_in_cache") == 0)
 				qcache_queries_in_cache = (gauge_t) val;
+			else if (strcmp (key, "Qcache_free_memory") == 0)
+				qcache_free_memory = (gauge_t) val;
 		}
 		else if (strncmp (key, "Bytes_",
 				        strlen ("Bytes_")) == 0)
@@ -987,6 +1056,31 @@ static int mysql_read (user_data_t *ud)
 				counter_submit ("mysql_innodb_rows", "read", val, db);
 			else if (strcmp (key, "Innodb_rows_updated") == 0)
 				counter_submit ("mysql_innodb_rows", "updated", val, db);
+
+			/* checkpoints */
+			else if (strcmp (key, "Innodb_checkpoint_age") == 0)
+				gauge_submit ("mysql_innodb_checkpoint", "age", val, db);
+			else if (strcmp (key, "Innodb_checkpoint_max_age") == 0)
+				gauge_submit ("mysql_innodb_checkpoint", "max_age", val, db);
+
+			/* max id */
+			else if (strcmp (key, "Innodb_max_trx_id") == 0)
+				gauge_submit ("mysql_innodb_max", "trx_id", val, db);
+
+			/* page_size */
+			else if (strcmp (key, "Innodb_page_size") == 0)
+				gauge_submit ("mysql_innodb_page", "size", val, db);
+
+			/* open tables and files */
+			else if (strcmp (key, "Innodb_open_files") == 0)
+				gauge_submit ("mysql_innodb_open", "files", val, db);
+			else if (strcmp (key, "Innodb_open_tables") == 0)
+				gauge_submit ("mysql_innodb_open", "tables", val, db);
+			else if (strcmp (key, "Innodb_opened_files") == 0)
+				gauge_submit ("mysql_innodb_opened", "files", val, db);
+			else if (strcmp (key, "Innodb_opened_tables") == 0)
+				gauge_submit ("mysql_innodb_opened", "tables", val, db);
+
 		}
 		else if (strncmp (key, "Select_", strlen ("Select_")) == 0)
 		{
@@ -1009,6 +1103,53 @@ static int mysql_read (user_data_t *ud)
 		{
 			counter_submit ("mysql_slow_queries", NULL , val, db);
 		}
+		else if (strncmp (key, "Queries", strlen ("Queries")) == 0) 
+		{
+			counter_submit ("mysql_queries", NULL , val, db);
+		}
+		else if (strncmp (key, "Connections", strlen ("Connections")) == 0) 
+		{
+			counter_submit ("mysql_connections", NULL , val, db);
+		}
+		else if (strncmp (key, "Uptime", strlen ("Uptime")) == 0) 
+		{
+			counter_submit ("mysql_uptime", NULL , val, db);
+		}
+		else if (strncmp (key, "Questions", strlen ("Questions")) == 0) 
+		{
+			counter_submit ("mysql_questions", NULL , val, db);
+		}
+		else if (strncmp (key, "Created_", strlen ("Created_")) == 0)
+		{
+			if (strcmp (key, "Created_tmp_tables") == 0)
+				counter_submit ("mysql_created", "tmp_tables", val, db);
+			else if (strcmp (key, "Created_tmp_disk") == 0)
+				counter_submit ("mysql_created", "tmp_disk", val, db);
+			else if (strcmp (key, "Created_tables") == 0)
+				counter_submit ("mysql_created", "tables", val, db);
+		}
+		else if (strncmp (key, "Aborted_", strlen ("Aborted_")) == 0)
+		{
+			if (strcmp (key, "Aborted_clients") == 0)
+				counter_submit ("mysql_aborted", "clients", val, db);
+			else if (strcmp (key, "Aborted_connects") == 0)
+				counter_submit ("mysql_aborted", "connects", val, db);
+		}
+		else if (strncmp (key, "Key_", strlen ("Key_")) == 0)
+		{
+			if(strcmp (key, "Key_reads") == 0)
+				counter_submit ("mysql_key", "reads", val, db);
+			else if (strcmp (key, "Key_read_requests") == 0)
+				counter_submit ("mysql_key", "read_requests", val, db);
+			if(strcmp (key, "Key_writes") == 0)
+				counter_submit ("mysql_key", "writes", val, db);
+			else if (strcmp (key, "Key_write_requests") == 0)
+				counter_submit ("mysql_key", "write_requests", val, db);
+			if(strcmp (key, "Key_blocks_unused") == 0)
+				counter_submit ("mysql_key", "blocks_unused", val, db);
+			else if (strcmp (key, "Key_blocks_not_flushed") == 0)
+				counter_submit ("mysql_key", "not_flushed", val, db);								
+		}
 	}
 	mysql_free_result (res); res = NULL;
 
@@ -1028,6 +1169,8 @@ static int mysql_read (user_data_t *ud)
 
 		gauge_submit ("cache_size", "qcache",
 				qcache_queries_in_cache, db);
+		gauge_submit ("cache_queries", "qcache-free-memory",
+				qcache_free_memory, db);
 	}
 
 	if (threads_created != 0)
@@ -1057,6 +1200,11 @@ static int mysql_read (user_data_t *ud)
 	if (db->wsrep_stats)
 		mysql_read_wsrep_stats (db, con);
 
+<<<<<<< HEAD
+=======
+	if (db->variables_stats)
+		mysql_read_variables (db, con);
+>>>>>>> 96d836d021f8fcfeb10a0c3155124feb7c4041a5
 	return (0);
 } /* int mysql_read */
 

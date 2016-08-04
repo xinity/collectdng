@@ -730,6 +730,7 @@
 #		Password "secret"
 #		Database "db_name"
 #		MasterStats true
+#       VariablesStats true
 #		ConnectTimeout 10
 #		InnodbStats true
 #	</Database>
@@ -740,6 +741,14 @@
 #		Socket "/var/run/mysql/mysqld.sock"
 #		SlaveStats true
 #		SlaveNotifications true
+#       VariablesStats true
+#	</Database>
+#	<Database galera>
+#		Alias "galera"
+#		Host "localhost"
+#		Socket "/var/run/mysql/mysqld.sock"
+#		WsrepStats true
+#       VariablesStats true
 #	</Database>
 #	<Database galera>
 #		Alias "galera"
