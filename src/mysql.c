@@ -54,6 +54,8 @@ struct mysql_database_s /* {{{ */
 	_Bool slave_stats;
 	_Bool innodb_stats;
 	_Bool wsrep_stats;
+	_Bool variables_stats;
+
 
 	_Bool slave_notif;
 	_Bool slave_io_running;
@@ -181,6 +183,9 @@ static int mysql_config_database (oconfig_item_t *ci) /* {{{ */
 			status = cf_util_get_boolean (child, &db->innodb_stats);
 		else if (strcasecmp ("WsrepStats", child->key) == 0)
 			status = cf_util_get_boolean (child, &db->wsrep_stats);
+		else if (strcasecmp ("VariablesStats", child->key) == 0)
+			status = cf_util_get_boolean (child, &db->variables_stats);
+			
 		else
 		{
 			WARNING ("mysql plugin: Option `%s' not allowed here.", child->key);
@@ -687,6 +692,55 @@ static int mysql_read_innodb_stats (mysql_database_t *db, MYSQL *con)
 	return (0);
 }
 
+static int mysql_read_variables (mysql_database_t *db, MYSQL *con)
+{
+	MYSQL_RES *res;
+	MYSQL_ROW  row;
+	const char *query;
+    struct {
+		const char *key;
+		const char *type;
+		int ds_type;
+	} metrics[] = {
+    	{ "thread_cache_size",               "gauge",        DS_TYPE_GAUGE },
+	    { "innodb_log_buffer_size",          "gauge",        DS_TYPE_GAUGE },
+    	{ "innodb_max_purge_lag_delay",      "gauge",        DS_TYPE_GAUGE },
+    	{ "max_connections",                 "gauge",        DS_TYPE_GAUGE },
+    	{ "innodb_additional_mem_pool_size", "gauge",        DS_TYPE_GAUGE },
+    	{ "key_buffer_size",                 "gauge",        DS_TYPE_GAUGE },
+    	{ "key_cache_block_size",			 "gauge",		 DS_TYPE_GAUGE },
+		{ "query_cache_size",                "gauge",        DS_TYPE_GAUGE },
+    	{ "table_open_cache",                "gauge",        DS_TYPE_GAUGE },
+    	{ "open_files_limit",                "gauge",        DS_TYPE_GAUGE },
+	    { "innodb_log_files_in_group",	     "gauge",	     DS_TYPE_GAUGE },
+	    { "innodb_log_file_size",            "gauge",        DS_TYPE_GAUGE },
+	    { NULL,                              NULL,           0}
+	};
+	query = "SHOW VARIABLES";
+
+	res = exec_query (con, query);
+	if (res == NULL)
+		return (-1);
+
+	while ((row = mysql_fetch_row (res)))
+	{
+		int i;
+		char *key;
+		unsigned long long val;
+
+		key = row[0];
+		val = atoll (row[1]);
+
+		for (i = 0; metrics[i].key != NULL && strcmp(metrics[i].key, key) != 0; i++)
+			;
+			if (metrics[i].key == NULL)
+			continue;
+		gauge_submit(metrics[i].type, key, (gauge_t)val, db);
+		}
+		mysql_free_result(res);
+		return (0);
+} /* mysql_read_variables */
+
 static int mysql_read_wsrep_stats (mysql_database_t *db, MYSQL *con)
 {
 	MYSQL_RES *res;
@@ -1125,6 +1179,8 @@ static int mysql_read (user_data_t *ud)
 	if (db->wsrep_stats)
 		mysql_read_wsrep_stats (db, con);
 
+	if (db->variables_stats)
+		mysql_read_variables (db, con);
 	return (0);
 } /* int mysql_read */
 
