@@ -1105,10 +1105,10 @@ static int mysql_read (user_data_t *ud)
 		{
 			if (strcmp (key, "Created_tmp_tables") == 0)
 				counter_submit ("mysql_created", "tmp_tables", val, db);
-			else if (strcmp (key, "Created_tmp_disk") == 0)
-				counter_submit ("mysql_created", "tmp_disk", val, db);
-			else if (strcmp (key, "Created_tables") == 0)
-				counter_submit ("mysql_created", "tables", val, db);
+			else if (strcmp (key, "Created_tmp_disk_tables") == 0)
+				counter_submit ("mysql_created", "tmp_disk_tables", val, db);
+			else if (strcmp (key, "Created_tmp_files") == 0)
+				counter_submit ("mysql_created", "tmp_files", val, db);
 		}
 		else if (strncmp (key, "Aborted_", strlen ("Aborted_")) == 0)
 		{
